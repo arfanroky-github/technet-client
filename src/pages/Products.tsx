@@ -1,43 +1,43 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import ProductCard from '@/components/ProductCard';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/components/ui/use-toast';
-import { IProduct } from '@/types/globalTypes';
-import { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+
+import { useGetProductsQuery } from '@/redux/features/product/productApi';
+import {
+  setPriceRange,
+  toggleState,
+} from '@/redux/features/product/productSlice';
+import { useAppDispatch, useAppSelector } from '@/redux/hook';
+import Product from '@/redux/features/product/productInterface';
 
 export default function Products() {
-  const [data, setData] = useState<IProduct[]>([]);
-  useEffect(() => {
-    fetch('./data.json')
-      .then((res) => res.json())
-      .then((data) => setData(data));
-  }, []);
-
-  const { toast } = useToast();
-
-  //! Dummy Data
-
-  const status = true;
-  const priceRange = 100;
-
-  //! **
+  const { status, priceRange } = useAppSelector((state) => state.product);
+  const dispatch = useAppDispatch();
+  const { isLoading, data } = useGetProductsQuery(null);
 
   const handleSlider = (value: number[]) => {
-    console.log(value);
+    dispatch(setPriceRange(value[0]));
   };
 
   let productsData;
 
+
   if (status) {
-    productsData = data.filter(
-      (item) => item.status === true && item.price < priceRange
+    productsData = data?.data?.filter(
+      (item: { status: boolean; price: number }) =>
+        item.status === true && item.price < priceRange
     );
   } else if (priceRange > 0) {
-    productsData = data.filter((item) => item.price < priceRange);
+    productsData = data?.data?.filter(
+      (item: { price: number }) => item.price < priceRange
+    );
   } else {
-    productsData = data;
+    productsData = data?.data;
   }
+
 
   return (
     <div className="grid grid-cols-12 max-w-7xl mx-auto relative ">
@@ -45,7 +45,7 @@ export default function Products() {
         <div>
           <h1 className="text-2xl uppercase">Availability</h1>
           <div className="flex items-center space-x-2 mt-3">
-            <Switch id="in-stock" />
+            <Switch onClick={() => dispatch(toggleState())} id="in-stock" />
             <Label htmlFor="in-stock">In stock</Label>
           </div>
         </div>
@@ -53,8 +53,8 @@ export default function Products() {
           <h1 className="text-2xl uppercase">Price Range</h1>
           <div className="max-w-xl">
             <Slider
-              defaultValue={[150]}
-              max={150}
+              defaultValue={[priceRange]}
+              max={150000}
               min={0}
               step={1}
               onValueChange={(value) => handleSlider(value)}
@@ -64,9 +64,13 @@ export default function Products() {
         </div>
       </div>
       <div className="col-span-9 grid grid-cols-3 gap-10 pb-20">
-        {productsData?.map((product) => (
-          <ProductCard product={product} />
-        ))}
+        {isLoading ? (
+          <Skeleton className="w-full h-52 bg-black/5" />
+        ) : (
+          productsData?.map((product: Product) => (
+            <ProductCard key={product._id} product={product} />
+          ))
+        )}
       </div>
     </div>
   );

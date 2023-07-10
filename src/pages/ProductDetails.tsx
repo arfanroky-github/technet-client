@@ -1,23 +1,32 @@
 import ProductReview from '@/components/ProductReview';
 import { Button } from '@/components/ui/button';
-import { IProduct } from '@/types/globalTypes';
-import { useEffect, useState } from 'react';
+import { ProductCart } from '@/redux/features/cart/cartInterface';
+import { addToCart } from '@/redux/features/cart/cartSlice';
+import { useGetSingleProductQuery } from '@/redux/features/product/productApi';
+import { useAppDispatch } from '@/redux/hook';
+import { ReactNode } from 'react';
+
 import { useParams } from 'react-router-dom';
 
 export default function ProductDetails() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
 
-  //! Temporary code, should be replaced with redux
-  const [data, setData] = useState<IProduct[]>([]);
-  useEffect(() => {
-    fetch('../../public/data.json')
-      .then((res) => res.json())
-      .then((data) => setData(data));
-  }, []);
+  const { data: product } = useGetSingleProductQuery(id);
+  const dispatch = useAppDispatch();
 
-  const product = data?.find((item) => item._id === Number(id));
+  const handleAddToCart = () => {
+    if (product) {
+      const payload: ProductCart = {
+        id: product._id,
+        model: product.model,
+        price: product.price,
+        quantity: 1,
+        image: product.image,
+      };
+      dispatch(addToCart(payload));
+    }
+  };
 
-  //! Temporary code ends here
 
   return (
     <>
@@ -26,17 +35,25 @@ export default function ProductDetails() {
           <img src={product?.image} alt="" />
         </div>
         <div className="w-[50%] space-y-3">
-          <h1 className="text-3xl font-semibold">{product?.name}</h1>
+          <h1 className="text-3xl font-semibold">{product?.model}</h1>
           <p className="text-xl">Rating: {product?.rating}</p>
           <ul className="space-y-1 text-lg">
-            {product?.features?.map((feature) => (
-              <li key={feature}>{feature}</li>
-            ))}
+            {product?.spec.map((item: { [s: string]: unknown }) => {
+              return Object.entries(item).map(
+                ([key, value]: [string, unknown]) => (
+                  <li key={key} className="flex items-center gap-2">
+                    <span className="font-bold text-xs capitalize">{key}:</span>
+                    <small>{value as ReactNode}</small>
+                  </li>
+                )
+              );
+            })}
           </ul>
-          <Button>Add to cart</Button>
+
+          <Button onClick={handleAddToCart}>Add to cart</Button>
         </div>
       </div>
-      <ProductReview />
+      <ProductReview id={id as string} />
     </>
   );
 }

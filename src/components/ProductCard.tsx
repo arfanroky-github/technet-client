@@ -1,24 +1,37 @@
-import { IProduct } from '@/types/globalTypes';
 import { toast } from './ui/use-toast';
 import { Button } from './ui/button';
 import { Link } from 'react-router-dom';
+import { useAppDispatch } from '@/redux/hook';
+import { addToCart } from '@/redux/features/cart/cartSlice';
+import Product from '@/redux/features/product/productInterface';
+import { ProductCart } from '@/redux/features/cart/cartInterface';
 
-interface IProps {
-  product: IProduct;
-}
+export default function ProductCard({product}: {product: Product}) {
+  const dispatch = useAppDispatch();
 
-export default function ProductCard({ product }: IProps) {
-  const handleAddProduct = (product: IProduct) => {
+  
+
+  const handleAddProduct = (product: Product) => {
+    const payload: ProductCart = {
+      id: product._id,
+      price: product.price,
+      model: product.model,
+      quantity: 1,
+      image: product.image,
+    };
+
+    dispatch(addToCart(payload));
     toast({
       description: 'Product Added',
     });
   };
+
   return (
     <div>
-      <div className="rounded-2xl h-[480px] flex flex-col items-start justify-between p-5 overflow-hidden shadow-md border border-gray-100 hover:shadow-2xl hover:scale-[102%] transition-all gap-2">
+      <div className="rounded-2xl h-[480px] flex flex-col items-start justify-between p-4 overflow-hidden shadow-md border border-gray-100 hover:shadow-2xl hover:scale-[102%] transition-all gap-2">
         <Link to={`/product-details/${product._id}`} className="w-full">
-          <img src={product?.image} alt="product" />
-          <h1 className="text-xl font-semibold">{product?.name}</h1>
+          <img src={product.image} alt="product" />
+          <h1 className="text-xl font-semibold">{product?.model}</h1>
         </Link>
         <p>Rating: {product?.rating}</p>
         <p className="text-sm">

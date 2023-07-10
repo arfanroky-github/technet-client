@@ -19,7 +19,7 @@ export default function Home() {
             <p>Bluetooth 5.2 for easy, secure communication</p>
             <p>Precise 143 Amoled display for clear visuals</p>
           </div>
-          <Button className="mt-5">Learn more</Button>
+          <Button  className="mt-5">Learn more</Button>
         </div>
         <div className="relative -right-14">
           <img src={banner} alt="" />
@@ -33,7 +33,7 @@ export default function Home() {
           <h1 className="text-5xl font-black text-primary uppercase mt-10">
             The future of tech is here
           </h1>
-          <Button className="mt-10" asChild>
+          <Button className="mt-10" >
             <Link to="/products">Brows all products</Link>
           </Button>
         </div>
